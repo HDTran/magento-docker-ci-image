@@ -59,7 +59,7 @@ USER www-data
 COPY ./install-magento /usr/local/bin/install-magento
 COPY ./add-node-user.sh /usr/local/bin/add-node-user.sh
 COPY ./create_user.sql /usr/local/create_user.sql
-COPY ./composer/auth.json $COMPOSER_HOME
+COPY ./auth.json $COMPOSER_HOME
 COPY --chown=www-data:www-data  ./id_rsa /var/www/.ssh/id_rsa
 
 RUN sudo chmod 600 /var/www/.ssh/id_rsa \
