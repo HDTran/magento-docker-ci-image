@@ -1,1 +1,1 @@
-docker build -t deity:magento2-ci .
+docker build -t deity-magento2-ci .
