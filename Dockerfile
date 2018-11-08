@@ -50,15 +50,15 @@ RUN requirements="libpng12-dev libmcrypt-dev libmcrypt4 libcurl3-dev libfreetype
 WORKDIR $INSTALL_DIR
 
 # Add cron job
-ADD crontab /etc/cron.d/magento2-cron
+COPY ./src/crontab /etc/cron.d/magento2-cron
 RUN chmod 0644 /etc/cron.d/magento2-cron \
     && crontab -u www-data /etc/cron.d/magento2-cron
     
 USER www-data
     
-COPY ./install-magento /usr/local/bin/install-magento
-COPY ./add-node-user.sh /usr/local/bin/add-node-user.sh
-COPY ./create_user.sql /usr/local/create_user.sql
+COPY ./src/install-magento /usr/local/bin/install-magento
+COPY ./src/add-node-user.sh /usr/local/bin/add-node-user.sh
+COPY ./src/create_user.sql /usr/local/create_user.sql
 COPY ./auth.json $COMPOSER_HOME
 COPY --chown=www-data:www-data  ./id_rsa /var/www/.ssh/id_rsa
 
@@ -128,7 +128,7 @@ RUN sudo rm -f  /var/www/html/var/composer_home/auth.json \
 && sudo rm -f  $COMPOSER_HOME/auth.json \
 && sudo rm -f   /var/www/.ssh/id_rsa 
 
-COPY ./entrypoint.sh /usr/bin/entrypoint.sh
+COPY ./src/entrypoint.sh /usr/bin/entrypoint.sh
 RUN sudo chmod +x  /usr/bin/entrypoint.sh
 ENTRYPOINT ["sudo","/usr/bin/entrypoint.sh"]
 
