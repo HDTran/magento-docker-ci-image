@@ -57,12 +57,14 @@ RUN chmod 0644 /etc/cron.d/magento2-cron \
 USER www-data
     
 COPY ./install-magento /usr/local/bin/install-magento
+COPY ./add-node-user.sh /usr/local/bin/add-node-user.sh
 COPY ./create_user.sql /usr/local/create_user.sql
 COPY ./composer/auth.json $COMPOSER_HOME
 COPY --chown=www-data:www-data  ./id_rsa /var/www/.ssh/id_rsa
 
 RUN sudo chmod 600 /var/www/.ssh/id_rsa \
 && sudo chmod +x /usr/local/bin/install-magento \
+&& sudo chmod +x /usr/local/bin//add-node-user.sh \
 && sudo chown -R www-data:www-data $COMPOSER_HOME  \
 && composer create-project --repository-url=https://repo.magento.com/ magento/project-community-edition /var/www/html \
 &&  find /var/www/html/ -type f -exec chmod 666 {} \; \
@@ -107,8 +109,9 @@ RUN sudo service mysql start \
 &&  /usr/local/bin/install-magento 
 
 ## Adding cache entry after magento install 
+## Here we can rebuild our custom config 
 RUN sudo service mysql start \
-&& bin/magento  admin:user:create  --admin-user="${MAGENTO_NODEUSER_USERNAME}" --admin-password="${MAGENTO_NODEUSER_PASSWORD}" --admin-email="${MAGENTO_NODEUSER_EMAIL}" --admin-firstname="${MAGENTO_NODEUSER_FIRSTNAME}" --admin-lastname="${MAGENTO_NODEUSER_LASTNAME}" \
+&& /usr/local/bin/add-node-user.sh \
 && cp $COMPOSER_HOME/auth.json  /var/www/html/var/composer_home/auth.json \
 && echo "Adding custom repo " \
 && composer config repositories.deity-api '{"type": "vcs", "url": "git@github.com:deity-io/falcon-magento2-module.git"}' \
