@@ -66,7 +66,7 @@ RUN sudo chmod 600 /var/www/.ssh/id_rsa \
 && sudo chmod +x /usr/local/bin/install-magento \
 && sudo chown -R www-data:www-data $COMPOSER_HOME  \
 && composer create-project --repository-url=https://repo.magento.com/ magento/project-community-edition /var/www/html \
-&&  find /var/www/html/ -type f -MAGENTO_VERSION_BRANCH_NAMEexec chmod 666 {} \; \
+&&  find /var/www/html/ -type f -exec chmod 666 {} \; \
 && find /var/www/html/ -type d -exec chmod 777 {} \;  \
 && chmod ugo+x /var/www/html/bin/magento
 
