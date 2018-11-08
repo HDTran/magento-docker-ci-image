@@ -18,8 +18,7 @@ RUN requirements="libpng12-dev libmcrypt-dev libmcrypt4 libcurl3-dev libfreetype
     && apt-get install -y unzip \
     && apt-get install -y ssmtp \
     && apt-get install -y mailutils \
-    && apt-get install -y mariadb-server \    
-    && rm -rf /var/lib/apt/lists/* \
+    && apt-get install -y mariadb-server \
     && docker-php-ext-install pdo_mysql \
     && docker-php-ext-configure gd --with-freetype-dir=/usr/include/ --with-jpeg-dir=/usr/include/ \
     && docker-php-ext-install gd \
