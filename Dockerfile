@@ -105,20 +105,36 @@ ARG MAGENTO_NODEUSER_PASSWORD=3de3f3a262
 RUN sudo service mysql start \
 && sudo mysqladmin -u root password "${MYSQL_ROOT_PASSWORD}"  \
 && sudo mysql -u root < /usr/local/create_user.sql  \
-&&  /usr/local/bin/install-magento \
+&&  /usr/local/bin/install-magento 
+
+## Adding cache entry after magento install 
+RUN sudo service mysql start \
 && bin/magento  admin:user:create  --admin-user="${MAGENTO_NODEUSER_USERNAME}" --admin-password="${MAGENTO_NODEUSER_PASSWORD}" --admin-email="${MAGENTO_NODEUSER_EMAIL}" --admin-firstname="${MAGENTO_NODEUSER_FIRSTNAME}" --admin-lastname="${MAGENTO_NODEUSER_LASTNAME}" \
-&& /var/www/html/bin/magento deploy:mode:set developer \
 && cp $COMPOSER_HOME/auth.json  /var/www/html/var/composer_home/auth.json \
-&& sudo chown www-data:www-data -R /var/www/html \
-#composer require deity/falcon-magento:dev-master
-#composer config repositories.deity-api '{"type": "path", "url": "../packages/api"}'
+&& echo "Adding custom repo " \
+&& composer config repositories.deity-api '{"type": "vcs", "url": "git@github.com:deity-io/falcon-magento2-module.git"}' \
+&& composer require --no-update deity/falcon-magento:dev-master \ 
 && /var/www/html/bin/magento sampledata:deploy  \
-&& /var/www/html/bin/magento setup:upgrade
+&& /var/www/html/bin/magento setup:upgrade 
+
+## Not needed. running everything as www-data 
+## && echo "OWNING   /var/www/html/" \
+## && sudo chown www-data:www-data -R -c /var/www/html
+
+## Remove authentication files from image
+RUN sudo rm -f  /var/www/html/var/composer_home/auth.json \
+&& sudo rm -f  $COMPOSER_HOME/auth.json \
+&& sudo rm -f   /var/www/.ssh/id_rsa 
 
 COPY ./entrypoint.sh /usr/bin/entrypoint.sh
 RUN sudo chmod +x  /usr/bin/entrypoint.sh
 ENTRYPOINT ["sudo","/usr/bin/entrypoint.sh"]
-    
-EXPOSE 3306 #mysql
-EXPOSE 80 # http
-# EXPOSE 443 #https
+
+# mysql
+EXPOSE 3306 
+
+# http
+EXPOSE 80
+
+# https
+# EXPOSE 443
