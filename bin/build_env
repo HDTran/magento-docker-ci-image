@@ -1,0 +1,22 @@
+#!/bin/sh
+#####
+## env file for the settings that affect the interaction with this image 
+###
+
+MAGENTO_URL=http://127.0.0.1
+
+MAGENTO_ADMIN_EMAIL=admin@deity.local
+MAGENTO_ADMIN_USERNAME=admin
+MAGENTO_ADMIN_PASSWORD=m@g3nt0
+
+MAGENTO_NODEUSER_FIRSTNAME=node
+MAGENTO_NODEUSER_LASTNAME=api
+MAGENTO_NODEUSER_EMAIL=node@deity.local
+MAGENTO_NODEUSER_USERNAME=node-api
+MAGENTO_NODEUSER_PASSWORD=3de3f3a262
+
+
+#MAGENTO_LANGUAGE=en_US
+#MAGENTO_TIMEZONE=Europe/Amsterdam
+#MAGENTO_DEFAULT_CURRENCY=USD
+
