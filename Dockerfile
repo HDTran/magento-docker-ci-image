@@ -1,4 +1,4 @@
-FROM alexcheng/apache2-php7:latest
+FROM alexcheng/apache2-php7:latest as builder
 
 ENV INSTALL_DIR /var/www/html
 ENV COMPOSER_HOME /var/www/.composer/
@@ -16,8 +16,6 @@ RUN requirements="libpng12-dev libmcrypt-dev libmcrypt4 libcurl3-dev libfreetype
     && apt-get install -y sudo \
     && apt-get install -y mysql-client \
     && apt-get install -y unzip \
-    && apt-get install -y ssmtp \
-    && apt-get install -y mailutils \
     && apt-get install -y mariadb-server \
     && docker-php-ext-install pdo_mysql \
     && docker-php-ext-configure gd --with-freetype-dir=/usr/include/ --with-jpeg-dir=/usr/include/ \
@@ -29,14 +27,9 @@ RUN requirements="libpng12-dev libmcrypt-dev libmcrypt4 libcurl3-dev libfreetype
     && docker-php-ext-install xsl \
     && docker-php-ext-install soap \
     && docker-php-ext-install bcmath \
-    && a2enmod rewrite \
     && echo "memory_limit=2048M" > /usr/local/etc/php/conf.d/memory-limit.ini \
-    && echo "www-data ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers \
-    && requirementsToRemove="libpng12-dev libmcrypt-dev libcurl3-dev libpng12-dev libfreetype6-dev libjpeg-turbo8-dev" \
-    && apt-get purge --auto-remove -y $requirementsToRemove \
-    && apt-get clean  \
-    && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
-
+    && echo "www-data ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers 
+    
 # PECL install but not enable xdebug
 # Symlink xdebug.so so that it is at a known path
 #RUN pecl install xdebug \
@@ -49,12 +42,7 @@ RUN requirements="libpng12-dev libmcrypt-dev libmcrypt4 libcurl3-dev libfreetype
 
 WORKDIR $INSTALL_DIR
 
-# Add cron job
-COPY ./src/crontab /etc/cron.d/magento2-cron
-RUN chmod 0644 /etc/cron.d/magento2-cron \
-    && crontab -u www-data /etc/cron.d/magento2-cron
-    
-USER www-data
+
     
 COPY ./src/install-magento /usr/local/bin/install-magento
 COPY ./src/add-node-user.sh /usr/local/bin/add-node-user.sh
@@ -126,6 +114,58 @@ RUN sudo rm -f  /var/www/html/var/composer_home/auth.json \
 && sudo rm -f  $COMPOSER_HOME/auth.json \
 && sudo rm -f   /var/www/.ssh/id_rsa \
 && composer clear-cache
+
+#########################################
+### Seccond Stage. Copy webroot and database 
+#########################################
+
+FROM alexcheng/apache2-php7:latest
+
+ENV INSTALL_DIR /var/www/html
+ENV COMPOSER_HOME /var/www/.composer/
+
+RUN curl -sS https://getcomposer.org/installer | php \
+&& mv composer.phar /usr/local/bin/composer 
+
+RUN requirements="libpng12-dev libmcrypt-dev libmcrypt4 libcurl3-dev libfreetype6 libjpeg-turbo8 libjpeg-turbo8-dev libpng12-dev libfreetype6-dev libicu-dev libxslt1-dev git" \
+    && apt-get update \
+    && apt-get install -y $requirements \
+    && apt-get install -y sudo \
+    && apt-get install -y mysql-client \
+    && apt-get install -y unzip \
+    && apt-get install -y redis-server \
+    && apt-get install -y mariadb-server \
+    && docker-php-ext-install pdo_mysql \
+    && docker-php-ext-configure gd --with-freetype-dir=/usr/include/ --with-jpeg-dir=/usr/include/ \
+    && docker-php-ext-install gd \
+    && docker-php-ext-install mcrypt \
+    && docker-php-ext-install mbstring \
+    && docker-php-ext-install zip \
+    && docker-php-ext-install intl \
+    && docker-php-ext-install xsl \
+    && docker-php-ext-install soap \
+    && docker-php-ext-install bcmath \
+    && a2enmod rewrite \
+    && echo "supervised systemd" >  /etc/redis/redis.conf \
+    && echo "memory_limit=2048M" > /usr/local/etc/php/conf.d/memory-limit.ini \
+    && echo "www-data ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers \
+    && requirementsToRemove="libpng12-dev libmcrypt-dev libcurl3-dev libpng12-dev libfreetype6-dev libjpeg-turbo8-dev" \
+    && apt-get purge --auto-remove -y $requirementsToRemove \
+    && apt-get clean  \
+    && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+WORKDIR $INSTALL_DIR
+
+# Add cron job
+COPY ./src/crontab /etc/cron.d/magento2-cron
+RUN chmod 0644 /etc/cron.d/magento2-cron \
+    && crontab -u www-data /etc/cron.d/magento2-cron
+    
+USER www-data
+
+COPY  --chown=www-data:www-data --from=builder /var/www/html/ /var/www/html/
+
+COPY --chown=mysql:mysql --from=builder /var/lib/mysql/ /var/lib/mysql 
 
 COPY ./src/entrypoint.sh /usr/bin/entrypoint.sh
 RUN sudo chmod +x  /usr/bin/entrypoint.sh

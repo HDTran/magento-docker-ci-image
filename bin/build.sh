@@ -17,7 +17,7 @@ docker build  \
     --build-arg MAGENTO_NODEUSER_EMAIL=$MAGENTO_NODEUSER_EMAIL \
     --build-arg MAGENTO_NODEUSER_USERNAME=$MAGENTO_NODEUSER_USERNAME \
     --build-arg MAGENTO_NODEUSER_PASSWORD=$MAGENTO_NODEUSER_PASSWORD \
-    --no-cache -t deity-magento2-ci .
+  -t deity-magento2-ci .
 
  echo "WARNING : you should remove auth.json and id_rsa for security reasons"
  
