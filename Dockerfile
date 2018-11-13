@@ -1,4 +1,4 @@
-FROM alexcheng/apache2-php7:latest as builder
+FROM alexcheng/apache2-php7:7.1.11 as builder
 
 ENV INSTALL_DIR /var/www/html
 ENV COMPOSER_HOME /var/www/.composer/
@@ -113,7 +113,7 @@ RUN sudo service mysql start \
 RUN sudo rm -f  /var/www/html/var/composer_home/auth.json \
 && sudo rm -f  $COMPOSER_HOME/auth.json \
 && sudo rm -f   /var/www/.ssh/id_rsa \
-&& composer clear-cache
+&& composer clear-cache`7.1:latest`
 
 #########################################
 ### Seccond Stage. Copy webroot and database 
